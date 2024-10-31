@@ -1,0 +1,401 @@
+﻿<Page
+    x:Class="MangoSpot.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:MangoSpot"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Page.Resources>
+
+
+        <local:BoolToBrushConverter x:Key="BoolToBrushConverter" />
+
+        <Storyboard x:Name="FadeOutStoryboard">
+            <DoubleAnimation
+                Storyboard.TargetName="BackgroundImage"
+                Storyboard.TargetProperty="Opacity"
+                From="1" To="0" Duration="0:0:0.5" />
+        </Storyboard>
+
+        <Storyboard x:Name="FadeInStoryboard">
+            <DoubleAnimation
+                Storyboard.TargetName="BackgroundImage"
+                Storyboard.TargetProperty="Opacity"
+                From="0" To="1" Duration="0:0:0.5" />
+        </Storyboard>
+
+        <Style x:Key="NoBorderButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Image x:Name="BackgroundImage" Stretch="Fill" Opacity="1" />
+        <Rectangle Fill="#D9000000" />
+
+        <Pivot Title="MangoSpot" SelectionChanged="Pivot_SelectionChanged" Grid.Row="0">
+
+            <PivotItem Header="history" Tag="history">
+                <ScrollViewer>
+                    <StackPanel>
+                        <ListView x:Name="HistoryListView" Margin="5" 
+                      VerticalAlignment="Stretch" 
+                      IsItemClickEnabled="True" 
+                      ItemClick="HistoryListView_ItemClick">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <TextBlock Text="{Binding Name}" 
+                                       FontSize="20" 
+                                       Margin="10,0,0,0" 
+                                       Foreground="White" 
+                                       VerticalAlignment="Top" 
+                                       TextWrapping="Wrap" 
+                                       Width="250" />
+                                        <TextBlock Text="{Binding Artist}" 
+                                       FontSize="16" 
+                                       Margin="10,0,0,0" 
+                                       Foreground="Gray" 
+                                       VerticalAlignment="Top" 
+                                       TextWrapping="Wrap" 
+                                       Width="150" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+
+            <PivotItem Header="account" Tag="account">
+                <Grid x:Name="AccountContent" Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Border Width="150" Height="150" 
+                        HorizontalAlignment="Left" 
+                        VerticalAlignment="Top" 
+                        Margin="0,0,0,20"
+                        Background="#FF202020"      
+                        BorderThickness="2" 
+                        BorderBrush="Gray">
+                        
+                        <Image x:Name="ProfileImage" 
+                        Width="140" 
+                        Height="140" 
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Center" />
+                        
+                    </Border>
+
+                    <StackPanel Grid.Row="1">
+                        <TextBlock x:Name="UserNameTextBlock" FontSize="20" Text="Name: " Foreground="White" />
+                        <TextBlock x:Name="UserIDTextBlock" FontSize="20" Text="User ID: " Margin="0,10,0,0" Foreground="White" />
+                        <TextBlock x:Name="UserCountryTextBlock" FontSize="20" Text="Country: " Margin="0,10,0,0" Foreground="White" />
+                    </StackPanel>
+
+
+                    <Button Content="About" Click="AboutButton_Click" Margin="0,0,0,20" VerticalAlignment="Bottom" Grid.Row="2" />
+                </Grid>
+            </PivotItem>
+
+            <PivotItem Header="playlists" Tag="playlists">
+                <ScrollViewer ViewChanged="PlaylistsListView_ScrollViewerViewChanged">
+                    <StackPanel>
+                        
+                        
+                        <ListView x:Name="PlaylistsListView" Margin="5" 
+                                  VerticalAlignment="Stretch" 
+                                  IsItemClickEnabled="True" 
+                                  Visibility="Visible"
+                                  ItemClick="PlaylistsListView_ItemClick">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,7">
+                                        <Image Source="{Binding Images[0].Url}" Width="80" Height="80" Stretch="UniformToFill" />
+                                        <TextBlock Text="{Binding Name}" 
+                                                   FontSize="20" 
+                                                   Margin="10,0,0,0" 
+                                                   Foreground="White" 
+                                                   VerticalAlignment="Top" 
+                                                   TextWrapping="Wrap" 
+                                                   Width="250" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <StackPanel Margin="0" VerticalAlignment="Stretch">
+
+                            <ListView x:Name="TracksListView" 
+                            VerticalAlignment="Stretch" 
+                            Visibility="Collapsed">
+
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <StackPanel Orientation="Horizontal" 
+                                        Margin="0,5" 
+                                        Tapped="TrackItem_Tapped">
+
+                                            <TextBlock Text="{Binding Name}" 
+                                        FontSize="20" 
+                                        Margin="10,0,0,0" 
+                                        Foreground="White" 
+                                        VerticalAlignment="Top" 
+                                        TextWrapping="Wrap" 
+                                        Width="250" />
+
+                                            <TextBlock Text="{Binding Artist}" 
+                                        FontSize="16" 
+                                        Margin="10,0,0,0" 
+                                        Foreground="Gray" 
+                                        VerticalAlignment="Top" 
+                                        TextWrapping="Wrap" 
+                                        Width="150" />
+
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                                
+                            </ListView>
+
+                            <Button x:Name="BackButtonTrack" 
+                                    Width="50" 
+                                    Height="30" 
+                                    Margin="0,0,0,10" 
+                                    Click="BackButtonTrack_Click" 
+                                    Visibility="Collapsed">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="←" 
+                                                FontFamily="Segoe MDL2 Assets" 
+                                                FontSize="36" 
+                                                VerticalAlignment="Center" 
+                                                Foreground="White" />
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+
+                        </StackPanel>
+
+
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+
+
+            <PivotItem Header="liked" Tag="liked">
+                <ScrollViewer ViewChanged="LikedSongsListView_ScrollViewerViewChanged">
+                    <StackPanel>
+                        <ListView x:Name="LikedSongsListView" Margin="5" 
+                      VerticalAlignment="Stretch" 
+                      IsItemClickEnabled="True" 
+                      ItemClick="LikedSongsListView_ItemClick">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <TextBlock Text="{Binding Name}" 
+                                           FontSize="20" 
+                                           Margin="10,0,0,0" 
+                                           Foreground="White" 
+                                           VerticalAlignment="Top" 
+                                           TextWrapping="Wrap" 
+                                           Width="250" />
+                                        <TextBlock Text="{Binding Artist}" 
+                                           FontSize="16" 
+                                           Margin="10,0,0,0" 
+                                           Foreground="Gray" 
+                                           VerticalAlignment="Top" 
+                                           TextWrapping="Wrap" 
+                                           Width="150" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+            
+            <PivotItem Header="recommendations" Tag="recommendations">
+                <ScrollViewer>
+                    <StackPanel>
+                        <ListView x:Name="RecommendationsListView" Margin="5" 
+                      VerticalAlignment="Stretch" 
+                      IsItemClickEnabled="True" 
+                      ItemClick="RecommendationsListView_ItemClick">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <TextBlock Text="{Binding Name}" 
+                                       FontSize="20" 
+                                       Margin="10,0,0,0" 
+                                       Foreground="White" 
+                                       VerticalAlignment="Top" 
+                                       TextWrapping="Wrap" 
+                                       Width="250" />
+                                        <TextBlock Text="{Binding Artist}" 
+                                       FontSize="16" 
+                                       Margin="10,0,0,0" 
+                                       Foreground="Gray" 
+                                       VerticalAlignment="Top" 
+                                       TextWrapping="Wrap" 
+                                       Width="150" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+
+
+
+            <PivotItem Header="search" Tag="search">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBox x:Name="SearchTextBox" 
+                 PlaceholderText="Search recommendations..." 
+                 Margin="10,0,10,10" 
+                 TextChanged="SearchTextBox_TextChanged" />
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                      Grid.Row="1">
+                        <ListView x:Name="SearchResultsListView" 
+                      Margin="10" 
+                      VerticalAlignment="Stretch" 
+                      IsItemClickEnabled="True" 
+                      ItemClick="SearchResultsListView_ItemClick">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <TextBlock Text="{Binding Name}" 
+                                       FontSize="20" 
+                                       Margin="10,0,0,0" 
+                                       Foreground="White" 
+                                       VerticalAlignment="Top" 
+                                       TextWrapping="Wrap" 
+                                       Width="250" />
+                                        <TextBlock Text="{Binding Artist}" 
+                                       FontSize="16" 
+                                       Margin="10,0,0,0" 
+                                       Foreground="Gray" 
+                                       VerticalAlignment="Top" 
+                                       TextWrapping="Wrap" 
+                                       Width="150" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </ScrollViewer>
+                </Grid>
+            </PivotItem>
+
+
+
+
+        </Pivot>
+
+        <Grid x:Name="AudioPlayerOverlay" Background="#80000000" 
+      Grid.Row="1" Visibility="Collapsed" HorizontalAlignment="Stretch">
+
+            <Border BorderThickness="0,2,0,0" BorderBrush="White" Margin="0,0,0,0">
+                <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="10,10,10,3">
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+                            <ScrollViewer x:Name="TrackNameScrollViewer" 
+                                  HorizontalScrollBarVisibility="Disabled" 
+                                  VerticalScrollBarVisibility="Disabled">
+                                <TextBlock x:Name="TrackNameTextBlock" 
+                                   FontSize="20" 
+                                   Foreground="White" 
+                                   TextWrapping="NoWrap" 
+                                   TextTrimming="CharacterEllipsis" />
+                            </ScrollViewer>
+                            <TextBlock x:Name="ArtistNameTextBlock" FontSize="18" Foreground="Gray" />
+                        </StackPanel>
+
+                        <StackPanel Orientation="Vertical" Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,5">
+                                <Button x:Name="PlayButton" Content="Play" Click="PlayButton_Click" Margin="0,0,5,0" />
+                                <Button x:Name="StopButton" Content="Stop" Click="StopButton_Click" Margin="0,0,10,0" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Canvas HorizontalAlignment="Left" Margin="-42.5,0,0,0">
+                            <Button x:Name="PreviousButton" Click="PreviousButton_Click" Width="Auto" Height="Auto"
+            Canvas.Top="32.5" Canvas.Left="0"
+            Background="Transparent" 
+            BorderBrush="Transparent" 
+            Style="{StaticResource NoBorderButtonStyle}">
+                                <SymbolIcon Symbol="Previous" />
+                            </Button>
+                            <Button x:Name="NextButton" Click="NextButton_Click" Width="Auto" Height="Auto"
+            Canvas.Top="32.5" Canvas.Left="30"  
+            Background="Transparent" 
+            BorderBrush="Transparent" 
+            Style="{StaticResource NoBorderButtonStyle}">
+                                <SymbolIcon Symbol="Next" />
+                            </Button>
+                            <Button x:Name="LikeButton" Click="LikeButton_Click" Width="Auto" Height="Auto"
+            Canvas.Top="32.5" Canvas.Left="65"
+                                Background="Transparent" 
+            BorderBrush="Transparent" 
+            Style="{StaticResource NoBorderButtonStyle}">
+                                <SymbolIcon Symbol="Like" />
+                            </Button>
+                        </Canvas>
+
+
+
+                    </Grid>
+
+                    <Slider x:Name="SeekSlider" Minimum="0" Maximum="100" Value="0" 
+                    ValueChanged="SeekSlider_ValueChanged" Margin="0,10,0,0" />
+                </StackPanel>
+            </Border>
+
+            <MediaElement x:Name="AudioPlayer" AutoPlay="False" Visibility="Collapsed" 
+                  MediaEnded="AudioPlayer_MediaEnded" 
+                  CurrentStateChanged="AudioPlayer_CurrentStateChanged" />
+        </Grid>
+
+
+    </Grid>
+    
+    
+    
+</Page>
+
