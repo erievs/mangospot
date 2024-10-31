@@ -6,8 +6,8 @@ namespace MangoSpot
     {
         private static readonly ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
 
-        public static string ClientID { get; set; } = "67b353570c814eed91bd60678460cac1";
-        public static string ClientSecret { get; set; } = "1ba00551ebf042cc9218ba2a02c48070";
+        public static string ClientID { get; set; } = "";
+        public static string ClientSecret { get; set; } = "";
         public static string RedirectUri { get; set; } = "http://localhost:3000/callback";
 
         private static string accessToken;
