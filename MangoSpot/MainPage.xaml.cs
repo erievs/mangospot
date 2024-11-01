@@ -60,7 +60,7 @@ namespace MangoSpot
 
         private string currentSongID = "";
 
-        private List<Track> _currentPlaylist;
+        private List<Track> _currentPlaylist = new List<Track>(); 
 
         private void Logout_Click(object sender, RoutedEventArgs e)
         {
@@ -774,6 +774,7 @@ namespace MangoSpot
                                 }
 
                                 playlist.Tracks.Add(track);
+                                _currentPlaylist.Add(track);
                             }
                             else
                             {
@@ -838,14 +839,21 @@ namespace MangoSpot
                 var track = stackPanel.DataContext as Track;
                 if (track != null)
                 {
-                    string trackName = track.Name;
-                    string artistName = track.Artist;
-                    string spotifyTrackId = track.SpotifyTrackId;
+                    string trackName = track.Name ?? "Unknown Track";
+                    string artistName = track.Artist ?? "Unknown Artist";
+                    string spotifyTrackId = track.SpotifyTrackId ?? "Unknown ID";
 
                     System.Diagnostics.Debug.WriteLine($"Track clicked: {trackName} by {artistName}");
 
+                    _currentListType = "PlaylistTracks";       
+
+                    if (track == null)
+                    {
+                        Debug.WriteLine("dfqf0");
+
+                    }
                     _currentTrackIndex = _currentPlaylist.IndexOf(track);
-                    _currentListType = "PlaylistTracks"; 
+        
 
                     await PlayTrackAsync(trackName, artistName, spotifyTrackId);
                 }
