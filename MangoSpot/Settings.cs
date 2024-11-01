@@ -10,6 +10,8 @@ namespace MangoSpot
         public static string ClientSecret { get; set; } = "1ba00551ebf042cc9218ba2a02c48070";
         public static string RedirectUri { get; set; } = "http://localhost:3000/callback";
 
+        public const string Version = "Version: Beta 1.1.0";
+
         private static string accessToken;
 
         private static string refreshToken;
@@ -69,5 +71,12 @@ namespace MangoSpot
             }
             refreshToken = null;
         }
+
+        public static void ClearTokens()
+        {
+            ClearAccessToken();
+            ClearRefreshToken();
+        }
+
     }
 }

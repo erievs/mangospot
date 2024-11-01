@@ -16,6 +16,13 @@ namespace MangoSpot
         {
             using (var httpClient = new HttpClient())
             {
+
+                if (string.IsNullOrEmpty(Settings.RefreshToken))
+                {
+                    System.Diagnostics.Debug.WriteLine("Refresh token is null or empty.");
+                    return null;
+                }
+
                 var tokenRequest = new HttpRequestMessage(HttpMethod.Post, TokenUrl);
 
                 var body = new FormUrlEncodedContent(new[]
@@ -40,15 +47,12 @@ namespace MangoSpot
                     if (response.IsSuccessStatusCode)
                     {
                         var jsonResponse = await response.Content.ReadAsStringAsync();
-
-            
                         System.Diagnostics.Debug.WriteLine("Response JSON:");
                         System.Diagnostics.Debug.WriteLine(jsonResponse);
 
                         var tokenData = JObject.Parse(jsonResponse);
 
-                        Settings.AccessToken = tokenData["access_token"]?.ToString();                                  
-   
+                        Settings.AccessToken = tokenData["access_token"]?.ToString();
 
                         System.Diagnostics.Debug.WriteLine("Access token refreshed successfully.");
                         return Settings.AccessToken;
@@ -78,6 +82,7 @@ namespace MangoSpot
                 }
             }
         }
+
     }
 
 

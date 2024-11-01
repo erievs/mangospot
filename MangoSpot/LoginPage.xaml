@@ -9,8 +9,8 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <ScrollViewer>
-        <Grid x:Name="LayoutRoot" Width="334" Margin="29,10,37,10">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+        <Grid x:Name="LayoutRoot" Margin="20">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="Auto" MaxWidth="500">
                 <TextBox x:Name="ClientIDTextBox" Header="Client ID" Margin="0,0,0,10" />
                 <TextBox x:Name="ClientSecretTextBox" Header="Client Secret" Margin="0,0,0,10" />
                 <TextBox x:Name="RedirectUriTextBox" Header="Redirect URI" Margin="0,0,0,10" />
@@ -21,30 +21,71 @@
 
                 <TextBlock Text="Instructions:" FontWeight="Bold" Margin="0,10,0,5"/>
 
-                <TextBlock Text="1. Go to the Spotify Developer Dashboard, create a project, and obtain your Client ID, Client Secret, and Redirect URI. It's recommended to set the Redirect URI to localhost:3000/callback, as I've encountered issues with other URIs." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="Login Process:" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="Due to limitations with the Windows Phone 8.1 browser, loading the Spotify login page can occasionally be challenging. Songs played through MangoSpot won't appear in your official Spotify history (a limitation of the Spotify API), but your listening history can still be tracked within the MangoSpot app." TextWrapping="Wrap" Margin="0,0,0,10"/>
 
-                <TextBlock Text="2. Scan the QR code above." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="Current Status:" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="MangoSpot is currently in Beta release (v1.0.0). Some features, such as playlist creation and Spotify web control, are still under development." TextWrapping="Wrap" Margin="0,0,0,10"/>
 
-                <TextBlock Text="3. Log in to your Spotify account (a Premium account is probably required)." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="How to Set Up MangoSpot" FontSize="20" FontWeight="Bold" Margin="0,20,0,10"/>
 
-                <TextBlock Text="4. After logging in, copy the code from the URL:" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                <TextBlock Text="   localhost:3000/callback?code=&lt;your_code&gt;" TextWrapping="Wrap" FontWeight="Bold" Margin="0,0,0,10"/>
+                <TextBlock Text="Required Spotify Developer Account Setup" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="To use MangoSpot, you need to create an app on the Spotify Developer Dashboard." TextWrapping="Wrap" Margin="0,0,0,10"/>
 
-                <TextBlock Text="5. To import the access code URL (MAKE SURE IT IS THE FULL URL!!!), you can paste it into a Google Docs document, then create a .csv file. Upload the .csv file to Litterbox and download it to your device." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="1. Create your Spotify App:" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="Save the following details from your app setup: Client ID, Client Secret, Redirect URI (Set to http://localhost:3000/callback)." TextWrapping="Wrap" Margin="0,0,0,10"/>
 
-                <TextBlock Text="6. To import the Client ID, Client Secret, and Redirect URI, create a CSV file formatted as: ClientID,ClientSecret,RedirectURI." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="2. Login and Authorization Process:" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="Enter these details into MangoSpot to complete the login process." TextWrapping="Wrap" Margin="0,0,0,10"/>
 
-                <TextBlock Text="7. To enter the details on the server website, navigate to the project settings section on the Spotify Developer Dashboard." TextWrapping="Wrap" Margin="0,0,0,10"/>
-                <TextBlock Text="   - Locate the fields for Client ID, Client Secret, and Redirect URI, and Call Back ?code= (copy the full url!)." TextWrapping="Wrap" Margin="0,0,0,5"/>
-                <TextBlock Text="   - Copy and paste your respective values into these fields." TextWrapping="Wrap" Margin="0,0,0,10"/>
-                <TextBlock Text="   - Save the changes to ensure the details are updated." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="Methods to Input Spotify Details into MangoSpot" FontSize="18" FontWeight="Bold" Margin="0,20,0,10"/>
+
+                <TextBlock Text="Method 1: Manual Entry _(Least Recommended)_" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="Manually enter Client ID, Client Secret, and Redirect URI directly into the app settings. This method is not recommended due to the potential for errors." TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Method 2: CSV Import" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="Create a CSV file with the following fields, in this exact format: ClientID,ClientSecret,RedirectURI. Import this CSV file into MangoSpot to automatically configure the necessary details." TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Method 3: Web Panel _(Recommended)_" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="1. Start the Web Server within MangoSpot." TextWrapping="Wrap" Margin="0,0,0,5"/>
+                <TextBlock Text="2. Connect to the server using your local device." TextWrapping="Wrap" Margin="0,0,0,5"/>
+                <TextBlock Text="3. Use the web panel to easily input your Client ID, Client Secret, and Redirect URI." TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Obtaining and Inputting Your Spotify Auth Code" FontSize="18" FontWeight="Bold" Margin="0,20,0,10"/>
+
+                <TextBlock Text="After setting up your app details in MangoSpot, authorize the app by generating an auth code from Spotify." TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Generating the Auth Code" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="1. Use MangoSpot to generate a QR Code." TextWrapping="Wrap" Margin="0,0,0,5"/>
+                <TextBlock Text="2. Scan the QR code on a mobile device or webcam to access Spotify's login page and authorize MangoSpot." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="Once authorized, you'll be redirected. Copy the entire redirect URL from your browser's address bar, and enter it into MangoSpot." TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Methods to Enter the Spotify Auth Code into MangoSpot" FontSize="18" FontWeight="Bold" Margin="0,20,0,10"/>
+
+                <TextBlock Text="Method 1: Manual Entry" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="Paste only the auth code (the part after ?code=) directly into the app." TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Method 2: CSV Import" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="Add the full redirect URL (from http://localhost:3000/callback?code=...) to a CSV file and import it into MangoSpot." TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Method 3: Web Panel" FontWeight="Bold" Margin="0,10,0,5"/>
+                <TextBlock Text="Use the web panel to enter the complete redirect URL containing your Spotify auth code. (Make sure to fill all other details otherwise it'll remove em!)" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Important Notes and Reminders" FontSize="18" FontWeight="Bold" Margin="0,20,0,10"/>
+                <TextBlock Text="• Redirect URL: Make sure your redirect URL is set to http://localhost:3000/callback. This setup works only on desktop browsers or newer mobile devices, not Windows Phone Mobile 8.1, maybe 10 idk." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="• Completeness: Ensure all fields on the web panel are filled before copying the redirect URL for authorization." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="• Error Handling: If an error appears after logging into Spotify, copy the entire URL from the address bar and paste it into MangoSpot." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="• Auth Code Location: In MangoSpot, the auth code is referred to as the value in AccessTokenTextBox, accessible within the app's input fields." TextWrapping="Wrap" Margin="0,0,0,10"/>
+                <TextBlock Text="• Web Server Address: Your device IP address will appear in MangoSpot's settings with port 3000 when the web server is active." TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                <TextBlock Text="Note: Always paste the entire redirect URL (not just the code) into MangoSpot to ensure successful authorization." FontWeight="Bold" Margin="0,20,0,10"/>
 
                 <TextBox x:Name="AccessTokenTextBox" Header="Access Token" Margin="0,0,0,10" />
 
                 <Button Content="Import Auth Stuff" Click="ImportAuthStuffeFileButton_Click" Margin="0,10,0,10"/>
 
-                <TextBlock x:Name="IpAddressTextBlock" Text="Local IP Address: " FontSize="16" Margin="0,10,0,0" />
-                <Button x:Name="StartServerButton" Content="Start Auth Details Page" Click="StartServerButton_Click" Margin="0,0,0,0"/>
+                <TextBlock x:Name="IpAddressTextBlock" Text="Your Local IP Address (You run this in your browser on a device): " FontSize="16" Margin="0,10,0,0" />
+                <Button x:Name="StartServerButton" Content="Start Input Auth Page/Server/Whatever" Click="StartServerButton_Click" Margin="0,0,0,0"/>
 
                 <TextBlock x:Name="ServerStatusTextBlock" Text="" FontSize="14" Margin="0,10,0,0"/>
 

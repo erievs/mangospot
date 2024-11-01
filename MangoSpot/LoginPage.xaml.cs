@@ -71,10 +71,13 @@ namespace MangoSpot
 
         private async void StartServerButton_Click(object sender, RoutedEventArgs e)
         {
-            server = new LocalWebServer(3000);
-            await server.Start(3000);
-            server.ParametersSet += UpdateUIWithSettings;
-            string localIpAddress = GetLocalIPAddress();
+            if (LocalWebServer.IsRunning == false)
+            {
+                server = new LocalWebServer(3000);
+                await server.Start(3000);
+                server.ParametersSet += UpdateUIWithSettings;
+                string localIpAddress = GetLocalIPAddress();
+            }
         }
 
         public async void UpdateUIWithSettings()
@@ -346,8 +349,16 @@ namespace MangoSpot
 
         private async Task<string> RefreshAccessTokenAsync()
         {
+
+            if (string.IsNullOrEmpty(Settings.RefreshToken))
+            {
+                System.Diagnostics.Debug.WriteLine("Refresh token is null or empty.");
+                return null;
+            }
+
             using (var httpClient = new HttpClient())
             {
+
                 var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
 
                 var body = new FormUrlEncodedContent(new[]
@@ -360,17 +371,46 @@ namespace MangoSpot
 
                 tokenRequest.Content = body;
 
-                var response = await httpClient.SendAsync(tokenRequest);
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    var tokenData = Newtonsoft.Json.JsonConvert.DeserializeObject<TokenResponse>(jsonResponse);
-                    Settings.AccessToken = tokenData.AccessToken;
-                    return tokenData.AccessToken;
+
+                    var response = await httpClient.SendAsync(tokenRequest);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var jsonResponse = await response.Content.ReadAsStringAsync();
+
+                        var tokenData = Newtonsoft.Json.JsonConvert.DeserializeObject<TokenResponse>(jsonResponse);
+                        Settings.AccessToken = tokenData.AccessToken;
+
+                        System.Diagnostics.Debug.WriteLine("Access token refreshed successfully.");
+                        return tokenData.AccessToken;
+                    }
+                    else
+                    {
+
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        System.Diagnostics.Debug.WriteLine($"Error refreshing access token: {response.ReasonPhrase}");
+                        System.Diagnostics.Debug.WriteLine($"Response Content: {errorContent}");
+                        return null;
+                    }
                 }
-                else
+                catch (HttpRequestException e)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error refreshing access token: {response.ReasonPhrase}");
+
+                    System.Diagnostics.Debug.WriteLine($"Request error: {e.Message}");
+                    return null;
+                }
+                catch (JsonException jsonEx)
+                {
+
+                    System.Diagnostics.Debug.WriteLine($"JSON error: {jsonEx.Message}");
+                    return null;
+                }
+                catch (Exception ex)
+                {
+
+                    System.Diagnostics.Debug.WriteLine($"Unexpected error: {ex.Message}");
                     return null;
                 }
             }

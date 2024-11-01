@@ -62,6 +62,11 @@ namespace MangoSpot
 
         private List<Track> _currentPlaylist;
 
+        private void Logout_Click(object sender, RoutedEventArgs e)
+        {
+            Settings.ClearTokens();
+        }
+
         private async void AboutButton_Click(object sender, RoutedEventArgs e)
         {
 
@@ -70,7 +75,7 @@ namespace MangoSpot
                 Title = "MangoSpot",
                 Content = new TextBlock
                 {
-                    Text = "Version: Beta 1.0.0" + Environment.NewLine +
+                    Text = Settings.Version + Environment.NewLine +
                            "\nCredits:" + Environment.NewLine +
                            "\nNCP3.0" + Environment.NewLine +
                            "\nKierownik (Backgrounds)" + Environment.NewLine +
@@ -203,18 +208,19 @@ namespace MangoSpot
                     {
                         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
-                            if (!await RefreshTokenAsync(httpClient, request))
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
                             {
-                                await ShowPopupAsync("Failed to refresh access token.");
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
                             }
                             else
                             {
-                                await LikeSongAsync(trackId);
+                                await LoadAccountDataAsync();
                             }
                         }
                         else
                         {
-                            await ShowPopupAsync("Failed to like song.");
+                            await ShowPopupAsync($"Failed to load user data. Status code: {response.StatusCode}");
                         }
                     }
                 }
@@ -289,9 +295,10 @@ namespace MangoSpot
                     {
                         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
-                            if (!await RefreshTokenAsync(httpClient, request))
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
                             {
-                                await ShowPopupAsync("Failed to refresh access token.");
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
                             }
                             else
                             {
@@ -300,7 +307,7 @@ namespace MangoSpot
                         }
                         else
                         {
-                            await ShowPopupAsync("Failed to load user data.");
+                            await ShowPopupAsync($"Failed to load user data. Status code: {response.StatusCode}");
                         }
                     }
                 }
@@ -371,9 +378,10 @@ namespace MangoSpot
                     {
                         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
-                            if (!await RefreshTokenAsync(httpClient, request))
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
                             {
-                                await ShowPopupAsync("Failed to refresh access token.");
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
                             }
                             else
                             {
@@ -382,8 +390,9 @@ namespace MangoSpot
                         }
                         else
                         {
-                            await ShowPopupAsync("Failed to load user data.");
+                            await ShowPopupAsync($"Failed to load user data. Status code: {response.StatusCode}");
                         }
+                   
                     }
                 }
                 catch (Exception ex)
@@ -456,9 +465,10 @@ namespace MangoSpot
                     {
                         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
-                            if (!await RefreshTokenAsync(httpClient, request))
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
                             {
-                                await ShowPopupAsync("Failed to refresh access token.");
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
                             }
                             else
                             {
@@ -467,7 +477,7 @@ namespace MangoSpot
                         }
                         else
                         {
-                            await ShowPopupAsync("Failed to load user data.");
+                            await ShowPopupAsync($"Failed to load user data. Status code: {response.StatusCode}");
                         }
                     }
                 }
@@ -566,9 +576,10 @@ namespace MangoSpot
                     {
                         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
-                            if (!await RefreshTokenAsync(httpClient, request))
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
                             {
-                                await ShowPopupAsync("Failed to refresh access token.");
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
                             }
                             else
                             {
@@ -577,7 +588,7 @@ namespace MangoSpot
                         }
                         else
                         {
-                            await ShowPopupAsync("Failed to load user data.");
+                            await ShowPopupAsync($"Failed to load user data. Status code: {response.StatusCode}");
                         }
                     }
                 }
@@ -683,7 +694,9 @@ namespace MangoSpot
                         {
                             Id = item["id"].ToString(),
                             Name = item["name"].ToString(),
-                            Images = images
+                            Images = images,
+                            OwnerDisplayName = item["owner"]["display_name"].ToString(),
+                            TotalTracks = item["tracks"]["total"].ToString()
                         };
 
                         _playlists.Add(playlist);
@@ -709,11 +722,16 @@ namespace MangoSpot
                 var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.spotify.com/v1/playlists/{playlist.Id}/tracks");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
+                Debug.WriteLine($"Sending request to: {request.RequestUri}");
+
                 var response = await httpClient.SendAsync(request);
+
+                Debug.WriteLine($"Response Status Code: {response.StatusCode}");
+
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonResponse = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine("Raw JSON Response: " + jsonResponse); 
+                    Debug.WriteLine("Raw JSON Response: " + jsonResponse);
 
                     var tracksData = JObject.Parse(jsonResponse)["items"];
                     if (tracksData != null && tracksData.HasValues)
@@ -727,11 +745,33 @@ namespace MangoSpot
                             {
                                 var track = new Track
                                 {
-                                    Name = trackInfo["name"]?.ToString(), 
+                                    Name = trackInfo["name"]?.ToString(),
                                     Artist = trackInfo["artists"]?[0]?["name"]?.ToString(),
-                                    SpotifyTrackId = trackInfo["id"]?.ToString()
-
+                                    SpotifyTrackId = trackInfo["id"]?.ToString(),
                                 };
+
+                                Debug.WriteLine($"Loaded Track: {track.Name}, Artist: {track.Artist}, " +
+                                  $"Spotify ID: {track.SpotifyTrackId}, Playlist: {playlist.Name}, " +
+                                  $"Total Tracks: {playlist.TotalTracks}");
+
+                                PlayListName.Text = playlist.TotalTracks;
+
+                                if (!String.IsNullOrEmpty(playlist.Name))
+                                {
+                                    PlayListName.Text = playlist.Name;
+                                } else
+                                {
+                                    PlayListName.Text =  "not found";
+                                }
+
+                                if (!String.IsNullOrEmpty(playlist.TotalTracks))
+                                {
+                                    TotalTrack.Text = playlist.TotalTracks + " tracks";
+                                }
+                                else
+                                {
+                                    TotalTrack.Text = "not found";
+                                }
 
                                 playlist.Tracks.Add(track);
                             }
@@ -741,7 +781,7 @@ namespace MangoSpot
                             }
                         }
 
-                        TracksListView.ItemsSource = playlist.Tracks; 
+                        TracksListView.ItemsSource = playlist.Tracks;
                     }
                     else
                     {
@@ -751,6 +791,7 @@ namespace MangoSpot
                 }
                 else
                 {
+                    Debug.WriteLine($"Failed to load tracks. Reason: {response.ReasonPhrase}");
                     await ShowPopupAsync("Failed to load tracks: " + response.ReasonPhrase);
                 }
             }
@@ -783,6 +824,7 @@ namespace MangoSpot
                 await LoadTracksForPlaylistAsync(selectedPlaylist);
                 PlaylistsListView.Visibility = Visibility.Collapsed;
                 TracksListView.Visibility = Visibility.Visible;
+                Tracks.Visibility = Visibility.Visible;
                 BackButtonTrack.Visibility = Visibility.Visible;
             }
         }
@@ -815,6 +857,7 @@ namespace MangoSpot
 
             TracksListView.Visibility = Visibility.Collapsed;
             PlaylistsListView.Visibility = Visibility.Visible;
+            Tracks.Visibility = Visibility.Collapsed;
             BackButtonTrack.Visibility = Visibility.Collapsed;
         }
 
@@ -870,9 +913,10 @@ namespace MangoSpot
                     {
                         if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                         {
-                            if (!await RefreshTokenAsync(httpClient, request))
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
                             {
-                                await ShowPopupAsync("Failed to refresh access token.");
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
                             }
                             else
                             {
@@ -881,22 +925,23 @@ namespace MangoSpot
                         }
                         else
                         {
-                            await ShowPopupAsync("Failed to load user data.");
+                            await ShowPopupAsync($"Failed to load user data. Status code: {response.StatusCode}");
                         }
                     }
                 }
                 catch (InvalidOperationException ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"InvalidOperationException occurred: {ex.Message}");
-                    await ShowPopupAsync("An error occurred while loading account data. Please try again.");
+                    await ShowPopupAsync($"An error occurred while loading account data. Details: {ex.Message}");
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"An unexpected error occurred: {ex.Message}");
-                    await ShowPopupAsync("An unexpected error occurred. Please try again.");
+                    await ShowPopupAsync($"An unexpected error occurred. Details: {ex.Message}");
                 }
             }
         }
+
 
 
         private async Task<string> SearchTrackAsync(string trackName, string artistName)
@@ -1397,42 +1442,71 @@ namespace MangoSpot
             return null;
         }
 
-        private async Task<bool> RefreshTokenAsync(HttpClient httpClient, HttpRequestMessage request)
+        private async void RefreshToken_Click(object sender, RoutedEventArgs e)
         {
             var tokenManager = new TokenManager();
+
             var newAccessToken = await tokenManager.RefreshAccessTokenAsync();
 
-            if (newAccessToken != null)
+
+
+            if (string.IsNullOrEmpty(newAccessToken))
             {
+                await ShowPopupAsync("Failed to refresh access token. Please check your credentials and try again.");
+            }
+            else
+            {
+
+                await LoadAccountDataAsync();
+                await ShowPopupAsync("Access token refreshed successfully!");
+            }
+        }
+
+        private async Task<string> RefreshTokenAsync(HttpClient httpClient, HttpRequestMessage request)
+        {
+            var tokenManager = new TokenManager();
+
+            var newAccessToken = await tokenManager.RefreshAccessTokenAsync();
+
+            if (!string.IsNullOrEmpty(newAccessToken))
+            {
+
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", newAccessToken);
-                var response = await httpClient.SendAsync(request);
 
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    System.Diagnostics.Debug.WriteLine("User Data JSON Response (after refresh): " + jsonResponse);
 
-                    try
+                    var response = await httpClient.SendAsync(request);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var jsonResponse = await response.Content.ReadAsStringAsync();
+                        System.Diagnostics.Debug.WriteLine("User Data JSON Response (after refresh): " + jsonResponse);
+                        return "Success";
+                    }
+                    else
                     {
 
-                        var jsonObject = JsonObject.Parse(jsonResponse);
-
-                        return true;
+                        var errorResponse = await response.Content.ReadAsStringAsync();
+                        System.Diagnostics.Debug.WriteLine("Failed to refresh token. Response: " + errorResponse);
+                        return errorResponse;
                     }
-                    catch (JsonException jsonEx)
-                    {
-                        System.Diagnostics.Debug.WriteLine("JSON parsing error: " + jsonEx.Message);
+                }
+                catch (HttpRequestException e)
+                {
 
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine("An unexpected error occurred: " + ex.Message);
+                    System.Diagnostics.Debug.WriteLine($"Request error: {e.Message}");
+                    return "Request error occurred while refreshing the token.";
+                }
+                catch (Exception ex)
+                {
 
-                    }
+                    System.Diagnostics.Debug.WriteLine($"Unexpected error: {ex.Message}");
+                    return "An unexpected error occurred while refreshing the token.";
                 }
             }
 
-            return false;
+            return "Failed to obtain a new access token.";
         }
 
         private async Task ShowPopupAsync(string message)
@@ -1448,7 +1522,9 @@ public class Playlist
     public string Id { get; set; }
     public string Name { get; set; }
     public List<PlaylistImage> Images { get; set; }
-    public List<Track> Tracks { get; set; } = new List<Track>(); 
+    public List<Track> Tracks { get; set; } = new List<Track>();
+    public string OwnerDisplayName { get; set; } = "not found";
+    public string TotalTracks { get; set; }
 }
 
 public class Track
