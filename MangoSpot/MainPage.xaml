@@ -101,13 +101,13 @@
                         Background="#FF202020"      
                         BorderThickness="2" 
                         BorderBrush="Gray">
-                        
+
                         <Image x:Name="ProfileImage" 
                         Width="140" 
                         Height="140" 
                         HorizontalAlignment="Center" 
                         VerticalAlignment="Center" />
-                        
+
                     </Border>
 
                     <StackPanel Grid.Row="1">
@@ -116,137 +116,149 @@
                         <TextBlock x:Name="UserCountryTextBlock" FontSize="20" Text="Country: " Margin="0,10,0,0" Foreground="White" />
                     </StackPanel>
 
+                    <Grid Grid.Row="2" Margin="0,0,0,20" VerticalAlignment="Bottom">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
 
-                    <Button Content="About" Click="AboutButton_Click" Margin="0,0,0,20" VerticalAlignment="Bottom" Grid.Row="2" />
-
-                    <Button Content="Force Token Refresh" Click="RefreshToken_Click" HorizontalAlignment="Center" Margin="0,0,0,20" VerticalAlignment="Bottom" Grid.Row="2" />
-
-                    <Button Content="Logout" Click="Logout_Click" HorizontalAlignment="Right" Margin="0,0,0,20" VerticalAlignment="Bottom" Grid.Row="2" />
+                        <Button Content="About" Click="AboutButton_Click" Grid.Column="0" HorizontalAlignment="Center" />
+                        <Button Content="Refresh Token" Click="RefreshToken_Click" Grid.Column="1" HorizontalAlignment="Center" />
+                        <Button Content="Logout" Click="Logout_Click" Grid.Column="2" HorizontalAlignment="Center" />
+                    </Grid>
 
                 </Grid>
             </PivotItem>
 
             <PivotItem Header="playlists" Tag="playlists">
-                <ScrollViewer ViewChanged="PlaylistsListView_ScrollViewerViewChanged">
-                    <StackPanel>
-                        
-                        
-                        <ListView x:Name="PlaylistsListView" Margin="5" 
-                                  VerticalAlignment="Stretch" 
-                                  IsItemClickEnabled="True" 
-                                  Visibility="Visible"
-                                  ItemClick="PlaylistsListView_ItemClick">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="0,7">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Image Source="{Binding Images[0].Url}" Width="80" Height="80" Stretch="UniformToFill" />
+                <Grid>
+                    <!-- StackPanel containing static content -->
+                    <StackPanel Name="Tracks" Visibility="Collapsed" Margin="0" VerticalAlignment="Stretch">
+                        <Grid Margin="0,0,0,10" VerticalAlignment="Top">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                                            <StackPanel Margin="10,0,0,0" VerticalAlignment="Top">
-                                                <TextBlock Text="{Binding Name}" 
+                            <TextBlock Grid.Row="1" 
+                           Name="PlayListName"
+                           FontSize="24" 
+                           Foreground="White" 
+                           Margin="10,0,0,0" 
+                           VerticalAlignment="Top" 
+                           HorizontalAlignment="Left" 
+                           MaxWidth="325"
+                           TextWrapping="NoWrap"
+                           TextTrimming="CharacterEllipsis" />
+
+                            <TextBlock Grid.Row="2" 
+                           Name="TotalTracks"
+                           FontSize="18" 
+                           Foreground="LightGray" 
+                           Margin="10,20,0,0" 
+                           VerticalAlignment="Bottom" 
+                           HorizontalAlignment="Left" />
+
+                            <Button Grid.Row="1" 
+                        x:Name="BackButtonTrack" 
+                        Width="50" 
+                        Height="30" 
+                        Click="BackButtonTrack_Click" 
+                        VerticalAlignment="Center" 
+                        HorizontalAlignment="Right">
+                                <Button.Content>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="←" 
+                                       FontFamily="Segoe MDL2 Assets" 
+                                       FontSize="36" 
+                                       VerticalAlignment="Center" 
+                                       Foreground="White" />
+                                    </StackPanel>
+                                </Button.Content>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- ScrollViewer for the ListView components -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"  ViewChanged="PlaylistsListView_ScrollViewerViewChanged" Name="PlayListScrollerDewHicky">
+                        <StackPanel>
+                            <ListView x:Name="PlaylistsListView" Margin="5" 
+                          VerticalAlignment="Stretch" 
+                          IsItemClickEnabled="True" 
+                          Visibility="Visible"
+                          ItemClick="PlaylistsListView_ItemClick">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,7">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Source="{Binding Images[0].Url}" Width="80" Height="80" Stretch="UniformToFill" />
+                                                <StackPanel Margin="10,0,0,0" VerticalAlignment="Top">
+                                                    
+                                                    <TextBlock Text="{Binding Name}" 
                                                    FontSize="20" 
                                                    Foreground="White" 
                                                    TextWrapping="Wrap" 
                                                    MaxLines="2" 
                                                    TextTrimming="CharacterEllipsis" />
-                                                
-                                                <TextBlock Text="{Binding OwnerDisplayName}" 
-                                               FontSize="18" 
-                                               Foreground="LightGray" 
-                                               Margin="0,5,0,0" 
-                                               TextWrapping="NoWrap" />
-                                                
+                                                    
+                                                    <TextBlock Text="{Binding OwnerDisplayName}" 
+                                                   FontSize="18" 
+                                                   Foreground="LightGray" 
+                                                   Margin="0,5,0,0" 
+                                                   TextWrapping="NoWrap" />
+                                                    
+                                                    <TextBlock Text="" 
+                                                    Name="TotalTracksPL"
+                                                    FontSize="16" 
+                                                    Foreground="Gray" 
+                                                    Margin="0,5,0,0"  
+                                                    TextWrapping="NoWrap" />
+                                                    
+                                                </StackPanel>
                                             </StackPanel>
                                         </StackPanel>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
 
-                        <StackPanel Name="Tracks" Visibility="Collapsed" Margin="0" VerticalAlignment="Stretch">
-
-
-                            <Grid Margin="0,0,0,10">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <TextBlock Grid.Row="1" 
-                                   Text="" 
-                                   Name="PlayListName"
-                                   FontSize="24" 
-                                   Foreground="White" 
-                                   Margin="5,0,0,0" 
-                                   VerticalAlignment="Top" 
-                                   HorizontalAlignment="Left" />
-
-                                <TextBlock Grid.Row="2" 
-                                    Name="TotalTrack"
-                                   FontSize="18" 
-                                   Foreground="LightGray" 
-                                   Margin="15,20,0,0" 
-                                   VerticalAlignment="Bottom" 
-                                   HorizontalAlignment="Left" />
-
-                                <Button Grid.Row="1" 
-                                    x:Name="BackButtonTrack" 
-                                    Width="50" 
-                                    Height="30" 
-                                    Margin="0,0,0,0" 
-                                    Click="BackButtonTrack_Click" 
-                                    VerticalAlignment="Center" 
-                                    HorizontalAlignment="Right">
-                                    <Button.Content>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="←" 
-                           FontFamily="Segoe MDL2 Assets" 
-                           FontSize="36" 
-                           VerticalAlignment="Center" 
-                           Foreground="White" />
-                                        </StackPanel>
-                                    </Button.Content>
-                                </Button>
-                            </Grid>
-                            
                             <ListView x:Name="TracksListView" 
-                              VerticalAlignment="Stretch" 
-                              Visibility="Visible">
+                                VerticalAlignment="Stretch" 
+                                Visibility="Visible"
+                                Margin="0,0,0,0" 
+                             >
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
                                         <StackPanel Orientation="Horizontal" 
                                          Margin="0,5" 
                                          Tapped="TrackItem_Tapped">
-
                                             <TextBlock Text="{Binding Name}" 
-                                               FontSize="20" 
-                                               Margin="10,0,0,0" 
-                                               Foreground="White" 
-                                               VerticalAlignment="Top" 
-                                               TextWrapping="Wrap" 
-                                               Width="250" />
-
+                                           FontSize="20" 
+                                           Margin="10,0,0,0" 
+                                           Foreground="White" 
+                                           VerticalAlignment="Top" 
+                                           TextWrapping="Wrap" 
+                                           Width="250" />
                                             <TextBlock Text="{Binding Artist}" 
-                                               FontSize="16" 
-                                               Margin="10,0,0,0" 
-                                               Foreground="Gray" 
-                                               VerticalAlignment="Top" 
-                                               TextWrapping="Wrap" 
-                                               Width="150" />
+                                           FontSize="16" 
+                                           Margin="10,0,0,0" 
+                                           Foreground="Gray" 
+                                           VerticalAlignment="Top" 
+                                           TextWrapping="Wrap" 
+                                           Width="150" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
                             </ListView>
                         </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
-                
+                    </ScrollViewer>
+                </Grid>
             </PivotItem>
+
 
 
             <PivotItem Header="liked" Tag="liked">
@@ -280,7 +292,7 @@
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>
-            
+
             <PivotItem Header="recommendations" Tag="recommendations">
                 <ScrollViewer>
                     <StackPanel>
@@ -358,10 +370,6 @@
                     </ScrollViewer>
                 </Grid>
             </PivotItem>
-
-
-
-
         </Pivot>
 
         <Grid x:Name="AudioPlayerOverlay" Background="#80000000" 
@@ -398,30 +406,34 @@
 
                         <Canvas HorizontalAlignment="Left" Margin="-42.5,0,0,0">
                             <Button x:Name="PreviousButton" Click="PreviousButton_Click" Width="Auto" Height="Auto"
-            Canvas.Top="32.5" Canvas.Left="0"
-            Background="Transparent" 
-            BorderBrush="Transparent" 
-            Style="{StaticResource NoBorderButtonStyle}">
+                                Canvas.Top="32.5" Canvas.Left="0"
+                                Background="Transparent" 
+                                BorderBrush="Transparent" 
+                                Style="{StaticResource NoBorderButtonStyle}">
                                 <SymbolIcon Symbol="Previous" />
                             </Button>
                             <Button x:Name="NextButton" Click="NextButton_Click" Width="Auto" Height="Auto"
-            Canvas.Top="32.5" Canvas.Left="30"  
-            Background="Transparent" 
-            BorderBrush="Transparent" 
-            Style="{StaticResource NoBorderButtonStyle}">
+                                Canvas.Top="32.5" Canvas.Left="30"  
+                                Background="Transparent" 
+                                BorderBrush="Transparent" 
+                                Style="{StaticResource NoBorderButtonStyle}">
                                 <SymbolIcon Symbol="Next" />
                             </Button>
                             <Button x:Name="LikeButton" Click="LikeButton_Click" Width="Auto" Height="Auto"
-            Canvas.Top="32.5" Canvas.Left="65"
+                                Canvas.Top="32.5" Canvas.Left="65"
                                 Background="Transparent" 
-            BorderBrush="Transparent" 
-            Style="{StaticResource NoBorderButtonStyle}">
+                                BorderBrush="Transparent" 
+                                Style="{StaticResource NoBorderButtonStyle}">
                                 <SymbolIcon Symbol="Like" />
                             </Button>
+                            <Button x:Name="ShuffleButton" Click="ShuffleButton_Click" Width="Auto" Height="Auto"
+                                Canvas.Top="32.5" Canvas.Left="100"
+                                Background="Transparent" 
+                                BorderBrush="Transparent" 
+                                Style="{StaticResource NoBorderButtonStyle}">
+                                <SymbolIcon Symbol="Shuffle" />
+                            </Button>
                         </Canvas>
-
-
-
                     </Grid>
 
                     <Slider x:Name="SeekSlider" Minimum="0" Maximum="100" Value="0" 
@@ -432,12 +444,8 @@
             <MediaElement x:Name="AudioPlayer" AutoPlay="False" Visibility="Collapsed" 
                   MediaEnded="AudioPlayer_MediaEnded" 
                   CurrentStateChanged="AudioPlayer_CurrentStateChanged" />
+
         </Grid>
-
-
     </Grid>
-    
-    
-    
 </Page>
 

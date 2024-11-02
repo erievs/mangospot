@@ -89,7 +89,7 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="BackgroundAudioTask.cs" />
+    <Compile Include="AudioBackgroundTask .cs" />
     <Compile Include="Converters.cs" />
     <Compile Include="LocalWebServer.cs" />
     <Compile Include="LoginPage.xaml.cs">

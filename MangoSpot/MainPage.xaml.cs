@@ -22,6 +22,8 @@ using Windows.UI.Xaml.Media;
 using Windows.Media.Playback;
 using Windows.Foundation.Collections;
 using Windows.Foundation;
+using Windows.ApplicationModel;
+using Windows.Media.Playback;
 
 namespace MangoSpot
 {
@@ -32,6 +34,7 @@ namespace MangoSpot
             this.InitializeComponent();
             _playlists = new ObservableCollection<Playlist>();
             _liked = new ObservableCollection<Track>();
+            _currentPlaylist = new ObservableCollection<Track>();
             _recentlyPlayed = new ObservableCollection<Track>();
             _recommendations = new ObservableCollection<Track>();
             _searchResults = new ObservableCollection<Track>();
@@ -39,28 +42,29 @@ namespace MangoSpot
             HistoryListView.ItemsSource = _recentlyPlayed;
             LikedSongsListView.ItemsSource = _liked;
             RecommendationsListView.ItemsSource = _recommendations;
-
+            TracksListView.ItemsSource = _currentPlaylist;
         }
 
         private int _offset = 0;
         private const int _limit = 50; 
+        private int _offsetForTracksView = 0;
         private bool _isLoading = false;
         private ObservableCollection<Playlist> _playlists;
         private ObservableCollection<Track> _recentlyPlayed;
         private ObservableCollection<Track> _recommendations;
+        private ObservableCollection<Track> _currentPlaylist;
         private ObservableCollection<Track> _liked;
         private ObservableCollection<Track> _searchResults;
 
         private int _currentTrackIndex = -1;
-        private string _currentListType; 
+        private string _currentListType;
 
+        private Playlist selectedPlaylist;
 
         private bool isPlaying = false;
         private int _currentOffset = 0;
 
         private string currentSongID = "";
-
-        private List<Track> _currentPlaylist = new List<Track>(); 
 
         private void Logout_Click(object sender, RoutedEventArgs e)
         {
@@ -633,7 +637,6 @@ namespace MangoSpot
             }
         }
 
-
         private async void RecommendationsListView_ItemClick(object sender, ItemClickEventArgs e)
         {
             var selectedTrack = e.ClickedItem as Track;
@@ -702,6 +705,7 @@ namespace MangoSpot
                         _playlists.Add(playlist);
                     }
 
+           
                     _offset += _limit;
                 }
                 else
@@ -715,95 +719,101 @@ namespace MangoSpot
 
         private async Task LoadTracksForPlaylistAsync(Playlist playlist)
         {
+            if (_isLoading) return;
+            _isLoading = true;
+
             string accessToken = Settings.AccessToken;
 
             using (var httpClient = new HttpClient())
             {
-                var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.spotify.com/v1/playlists/{playlist.Id}/tracks");
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-                Debug.WriteLine($"Sending request to: {request.RequestUri}");
-
-                var response = await httpClient.SendAsync(request);
-
-                Debug.WriteLine($"Response Status Code: {response.StatusCode}");
-
-                if (response.IsSuccessStatusCode)
+                try
                 {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
+
+                    string requestUri = string.Format("https://api.spotify.com/v1/playlists/{0}/tracks?offset={1}&limit={2}", playlist.Id, _offsetForTracksView, _limit);
+                    var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                    Debug.WriteLine("Sending request to: " + request.RequestUri);
+
+                    var response = await httpClient.SendAsync(request);
+                    Debug.WriteLine("Response Status Code: " + response.StatusCode);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Debug.WriteLine("Failed to load tracks. Reason: " + response.ReasonPhrase);
+                        await ShowPopupAsync("Failed to load tracks: " + response.ReasonPhrase);
+                        return;
+                    }
+
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
                     Debug.WriteLine("Raw JSON Response: " + jsonResponse);
 
-                    var tracksData = JObject.Parse(jsonResponse)["items"];
-                    if (tracksData != null && tracksData.HasValues)
+                    JObject jsonResponseObj = JObject.Parse(jsonResponse);
+                    JToken tracksData = jsonResponseObj["items"];
+
+                    int totalTracks = jsonResponseObj["total"] != null ? (int)jsonResponseObj["total"] : 0;
+
+                    if (tracksData == null || !tracksData.HasValues)
+                    {
+                        Debug.WriteLine("No more tracks available to load or they're just less than 50 lol.");
+                        return;
+                    }
+
+                    Debug.WriteLine("Tracks received: " + tracksData.Count());
+
+                    if (_offsetForTracksView == 0)
                     {
                         playlist.Tracks.Clear();
-
-                        foreach (var item in tracksData)
-                        {
-                            var trackInfo = item["track"];
-                            if (trackInfo != null)
-                            {
-                                var track = new Track
-                                {
-                                    Name = trackInfo["name"]?.ToString(),
-                                    Artist = trackInfo["artists"]?[0]?["name"]?.ToString(),
-                                    SpotifyTrackId = trackInfo["id"]?.ToString(),
-                                };
-
-                                Debug.WriteLine($"Loaded Track: {track.Name}, Artist: {track.Artist}, " +
-                                  $"Spotify ID: {track.SpotifyTrackId}, Playlist: {playlist.Name}, " +
-                                  $"Total Tracks: {playlist.TotalTracks}");
-
-                                PlayListName.Text = playlist.TotalTracks;
-
-                                if (!String.IsNullOrEmpty(playlist.Name))
-                                {
-                                    PlayListName.Text = playlist.Name;
-                                } else
-                                {
-                                    PlayListName.Text =  "not found";
-                                }
-
-                                if (!String.IsNullOrEmpty(playlist.TotalTracks))
-                                {
-                                    TotalTrack.Text = playlist.TotalTracks + " tracks";
-                                }
-                                else
-                                {
-                                    TotalTrack.Text = "not found";
-                                }
-
-                                playlist.Tracks.Add(track);
-                                _currentPlaylist.Add(track);
-                            }
-                            else
-                            {
-                                Debug.WriteLine("Track info is null for item: " + item);
-                            }
-                        }
-
-                        TracksListView.ItemsSource = playlist.Tracks;
+                        _currentPlaylist.Clear();
                     }
-                    else
+
+                    foreach (JToken item in tracksData)
                     {
-                        Debug.WriteLine("No tracks found in response.");
-                        await ShowPopupAsync("No tracks found in the playlist.");
+                        JObject trackInfo = item["track"] as JObject;
+                        if (trackInfo != null)
+                        {
+                            Track track = new Track
+                            {
+                                Name = trackInfo["name"] != null ? trackInfo["name"].ToString() : string.Empty,
+                                Artist = trackInfo["artists"] != null && trackInfo["artists"].HasValues
+                                    ? trackInfo["artists"][0]["name"].ToString()
+                                    : string.Empty,
+                                SpotifyTrackId = trackInfo["id"] != null ? trackInfo["id"].ToString() : string.Empty,
+                            };
+
+                            Debug.WriteLine($"Loaded Track: {track.Name}, Artist: {track.Artist}, Spotify ID: {track.SpotifyTrackId}");
+
+                            playlist.Tracks.Add(track);
+                            _currentPlaylist.Add(track);
+                        }
+                        else
+                        {
+                            Debug.WriteLine("Track info is null for item: " + item);
+                        }
+                    }
+
+                    TotalTracks.Text = $"{totalTracks} tracks in total";
+                    PlayListName.Text = string.IsNullOrEmpty(playlist.Name) ? "not found" : playlist.Name;
+
+                    TracksListView.ItemsSource = _currentPlaylist;
+
+                    if (_offsetForTracksView + _limit >= totalTracks)
+                    {
+                        Debug.WriteLine("All tracks loaded, no more to load or they're just less than 50 lol.");
+                        return;
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Debug.WriteLine($"Failed to load tracks. Reason: {response.ReasonPhrase}");
-                    await ShowPopupAsync("Failed to load tracks: " + response.ReasonPhrase);
+                    Debug.WriteLine("Exception occurred: " + ex.Message);
+                    await ShowPopupAsync("An error occurred while loading tracks.");
                 }
-            }
-        }
+                finally
+                {
 
-        private void PlaylistsListView_ScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
-        {
-            var scrollViewer = sender as ScrollViewer;
-            if (scrollViewer != null && scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight)
-            {
-                LoadPlaylistsAsync();
+                    _offsetForTracksView += _limit;
+                    _isLoading = false;
+                }
             }
         }
 
@@ -816,9 +826,32 @@ namespace MangoSpot
             }
         }
 
+        private void PlaylistsListView_ScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        {
+            var scrollViewer = sender as ScrollViewer;
+            if (scrollViewer != null && scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight)
+            {
+                if (PlaylistsListView.Visibility == Visibility.Visible)
+                {
+                    Debug.WriteLine("PlaylistsListView is visible. Loading playlists...");
+                    LoadPlaylistsAsync();
+                }
+                else
+                {
+                    Debug.WriteLine("PlaylistsListView is not visible. Loading more tracks...");
+                    LoadTracksForPlaylistAsync(selectedPlaylist); // Load more tracks if PlaylistsListView is not visible
+                }
+            }
+        }
+
         private async void PlaylistsListView_ItemClick(object sender, ItemClickEventArgs e)
         {
-            var selectedPlaylist = e.ClickedItem as Playlist;
+
+             selectedPlaylist = null;
+            _currentPlaylist.Clear();
+            _offsetForTracksView = 0;
+
+            selectedPlaylist = e.ClickedItem as Playlist;
 
             if (selectedPlaylist != null)
             {
@@ -827,6 +860,8 @@ namespace MangoSpot
                 TracksListView.Visibility = Visibility.Visible;
                 Tracks.Visibility = Visibility.Visible;
                 BackButtonTrack.Visibility = Visibility.Visible;
+                PlayListScrollerDewHicky.Margin = new Thickness(0, 70, 0, 0);
+
             }
         }
 
@@ -863,10 +898,13 @@ namespace MangoSpot
         private void BackButtonTrack_Click(object sender, RoutedEventArgs e)
         {
 
+            _currentPlaylist.Clear();
+            selectedPlaylist = null;
             TracksListView.Visibility = Visibility.Collapsed;
             PlaylistsListView.Visibility = Visibility.Visible;
             Tracks.Visibility = Visibility.Collapsed;
             BackButtonTrack.Visibility = Visibility.Collapsed;
+            PlayListScrollerDewHicky.Margin = new Thickness(0, 0, 0, 0);
         }
 
         private void SpotifyWebView_NavigationFailed(WebView sender, WebViewNavigationFailedEventArgs args)
@@ -1247,6 +1285,16 @@ namespace MangoSpot
             }
         }
 
+        private void OnSuspending(object sender, SuspendingEventArgs e)
+        {
+            var deferral = e.SuspendingOperation.GetDeferral();
+
+            BackgroundMediaPlayer.Current?.Pause();
+
+            deferral.Complete();
+        }
+
+
         private string ExtractAudioUrl(string json)
         {
 
@@ -1284,13 +1332,11 @@ namespace MangoSpot
             if (isPlaying)
             {
                 AudioPlayer.Pause();
-                StartBackgroundAudio();
                 PlayButton.Content = "Play";
             }
             else
             {
                 AudioPlayer.Play();
-                StopBackgroundAudio();
                 PlayButton.Content = "Pause";
             }
             isPlaying = !isPlaying;
@@ -1311,6 +1357,11 @@ namespace MangoSpot
         private async void LikeButton_Click(object sender, RoutedEventArgs e)
         {
             await LikeSongAsync(currentSongID);
+        }
+
+        private void ShuffleButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShuffleTracks();
         }
 
         private void AudioPlayer_MediaEnded(object sender, RoutedEventArgs e)
@@ -1397,6 +1448,58 @@ namespace MangoSpot
             }
         }
 
+        private async void ShuffleTracks()
+        {
+            if (_currentListType == "PlaylistTracks")
+            {
+                if (_currentPlaylist.Count > 0)
+                {
+                    Random rand = new Random();
+                    _currentTrackIndex = rand.Next(_currentPlaylist.Count);
+                    var randomTrack = _currentPlaylist[_currentTrackIndex];
+                    await PlayTrackAsync(randomTrack.Name, randomTrack.Artist, randomTrack.SpotifyTrackId);
+                    System.Diagnostics.Debug.WriteLine($"Playing random track in Playlist: {randomTrack.Name} by {randomTrack.Artist}");
+                }
+            }
+            else if (_currentListType == "History")
+            {
+                if (_recentlyPlayed.Count > 0)
+                {
+                    Random rand = new Random();
+                    _currentTrackIndex = rand.Next(_recentlyPlayed.Count);
+                    var randomTrack = _recentlyPlayed[_currentTrackIndex];
+                    await PlayTrackAsync(randomTrack.Name, randomTrack.Artist, randomTrack.SpotifyTrackId);
+                    System.Diagnostics.Debug.WriteLine($"Playing random track in History: {randomTrack.Name} by {randomTrack.Artist}");
+                }
+            }
+            else if (_currentListType == "Liked")
+            {
+                if (_liked.Count > 0)
+                {
+                    Random rand = new Random();
+                    _currentTrackIndex = rand.Next(_liked.Count);
+                    var randomTrack = _liked[_currentTrackIndex];
+                    await PlayTrackAsync(randomTrack.Name, randomTrack.Artist, randomTrack.SpotifyTrackId);
+                    System.Diagnostics.Debug.WriteLine($"Playing random track in Liked: {randomTrack.Name} by {randomTrack.Artist}");
+                }
+            }
+            else if (_currentListType == "Recommendations")
+            {
+                if (_recommendations.Count > 0)
+                {
+                    Random rand = new Random();
+                    _currentTrackIndex = rand.Next(_recommendations.Count);
+                    var randomTrack = _recommendations[_currentTrackIndex];
+                    await PlayTrackAsync(randomTrack.Name, randomTrack.Artist, randomTrack.SpotifyTrackId);
+                    System.Diagnostics.Debug.WriteLine($"Playing random track in Recommendations: {randomTrack.Name} by {randomTrack.Artist}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("No tracks available to play.");
+            }
+        }
+
 
         private void AudioPlayer_CurrentStateChanged(object sender, RoutedEventArgs e)
         {
@@ -1422,18 +1525,6 @@ namespace MangoSpot
             {
                 AudioPlayer.Position = TimeSpan.FromSeconds(SeekSlider.Value);
             }
-        }
-
-        private void StartBackgroundAudio()
-        {
-            var message = new ValueSet { { "Command", "Play" } };
-            BackgroundMediaPlayer.SendMessageToBackground(message);
-        }
-
-        private void StopBackgroundAudio()
-        {
-            var message = new ValueSet { { "Command", "Stop" } };
-            BackgroundMediaPlayer.SendMessageToBackground(message);
         }
 
         private string ExtractVideoId(string json)

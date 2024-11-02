@@ -192,6 +192,7 @@ public class LocalWebServer
                 p {{
                     font-size: 16px; 
                     margin: 10px 0; 
+                    text-overflow: ellipsis;
                 }}
                 a {{
                     color: #0078D7; 
@@ -271,6 +272,10 @@ public class LocalWebServer
                 input[type='submit']:hover {{
                     background-color: #005A9E; 
                 }}
+                p {{
+                text-overflow: ellipsis;
+                }}
+
             </style>
         </head>
         <body>
