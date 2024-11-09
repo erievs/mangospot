@@ -57,7 +57,7 @@
             <PivotItem Header="history" Tag="history">
                 <ScrollViewer>
                     <StackPanel>
-                        <ListView x:Name="HistoryListView" Margin="5" 
+                        <ListView x:Name="HistoryListView" Margin="-7.5" 
                       VerticalAlignment="Stretch" 
                       IsItemClickEnabled="True" 
                       ItemClick="HistoryListView_ItemClick">
@@ -134,7 +134,7 @@
             <PivotItem Header="playlists" Tag="playlists">
                 <Grid>
                     <!-- StackPanel containing static content -->
-                    <StackPanel Name="Tracks" Visibility="Collapsed" Margin="0" VerticalAlignment="Stretch">
+                    <StackPanel Name="Tracks" Visibility="Collapsed" Margin="-5" VerticalAlignment="Stretch">
                         <Grid Margin="0,0,0,10" VerticalAlignment="Top">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -165,22 +165,18 @@
                            HorizontalAlignment="Left" />
 
                             <Button Grid.Row="1" 
-                        x:Name="BackButtonTrack" 
-                        Width="50" 
-                        Height="30" 
-                        Click="BackButtonTrack_Click" 
-                        VerticalAlignment="Center" 
-                        HorizontalAlignment="Right">
+                                    x:Name="BackButtonTrack" 
+                                    Width="50" 
+                                    Height="30" 
+                                    Click="BackButtonTrack_Click" 
+                                    VerticalAlignment="Center" 
+                                    HorizontalAlignment="Right">
                                 <Button.Content>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="←" 
-                                       FontFamily="Segoe MDL2 Assets" 
-                                       FontSize="36" 
-                                       VerticalAlignment="Center" 
-                                       Foreground="White" />
-                                    </StackPanel>
+                                    <SymbolIcon Symbol="Back" Foreground="White" />
                                 </Button.Content>
                             </Button>
+
+
                         </Grid>
                     </StackPanel>
 
@@ -259,12 +255,10 @@
                 </Grid>
             </PivotItem>
 
-
-
             <PivotItem Header="liked" Tag="liked">
                 <ScrollViewer ViewChanged="LikedSongsListView_ScrollViewerViewChanged">
                     <StackPanel>
-                        <ListView x:Name="LikedSongsListView" Margin="5" 
+                        <ListView x:Name="LikedSongsListView" Margin="-5" 
                       VerticalAlignment="Stretch" 
                       IsItemClickEnabled="True" 
                       ItemClick="LikedSongsListView_ItemClick">
@@ -296,7 +290,7 @@
             <PivotItem Header="recommendations" Tag="recommendations">
                 <ScrollViewer>
                     <StackPanel>
-                        <ListView x:Name="RecommendationsListView" Margin="5" 
+                        <ListView x:Name="RecommendationsListView" Margin="-5" 
                       VerticalAlignment="Stretch" 
                       IsItemClickEnabled="True" 
                       ItemClick="RecommendationsListView_ItemClick">
@@ -325,8 +319,6 @@
                 </ScrollViewer>
             </PivotItem>
 
-
-
             <PivotItem Header="search" Tag="search">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -342,7 +334,7 @@
                     <ScrollViewer VerticalScrollBarVisibility="Auto" 
                       Grid.Row="1">
                         <ListView x:Name="SearchResultsListView" 
-                      Margin="10" 
+                      Margin="5" 
                       VerticalAlignment="Stretch" 
                       IsItemClickEnabled="True" 
                       ItemClick="SearchResultsListView_ItemClick">

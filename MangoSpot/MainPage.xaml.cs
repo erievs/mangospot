@@ -203,6 +203,29 @@ namespace MangoSpot
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine("Response JSON: " + jsonResponse);
 
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
+                            {
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
+                                return;
+                            }
+                            else
+                            {
+                                await LoadAccountDataAsync();
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
+                            return;
+                        }
+                    }
+
                     if (response.IsSuccessStatusCode)
                     {
                         System.Diagnostics.Debug.WriteLine("Song liked successfully.");
@@ -266,6 +289,29 @@ namespace MangoSpot
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"SearchTracksAsync: Response Status Code: {(int)response.StatusCode} {response.StatusCode}");
                     System.Diagnostics.Debug.WriteLine("SearchTracksAsync: JSON Response: " + jsonResponse);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
+                            {
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
+                                return;
+                            }
+                            else
+                            {
+                                await LoadAccountDataAsync();
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
+                            return;
+                        }
+                    }
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -356,6 +402,29 @@ namespace MangoSpot
                     System.Diagnostics.Debug.WriteLine($"LoadRecommendationsAsync: Response Status Code: {(int)response.StatusCode} {response.StatusCode}");
                     System.Diagnostics.Debug.WriteLine("LoadRecommendationsAsync: JSON Response: " + jsonResponse);
 
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
+                            {
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
+                                return;
+                            }
+                            else
+                            {
+                                await LoadAccountDataAsync();
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
+                            return;
+                        }
+                    }
+
                     if (response.IsSuccessStatusCode)
                     {
                         var recommendationsData = JObject.Parse(jsonResponse)["tracks"];
@@ -434,6 +503,29 @@ namespace MangoSpot
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"LoadRecentlyPlayedTracksAsync: Response Status Code: {(int)response.StatusCode} {response.StatusCode}");
                     System.Diagnostics.Debug.WriteLine("LoadRecentlyPlayedTracksAsync: JSON Response: " + jsonResponse);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
+                            {
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
+                                return;
+                            }
+                            else
+                            {
+                                await LoadAccountDataAsync();
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
+                            return;
+                        }
+                    }
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -542,8 +634,25 @@ namespace MangoSpot
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        var errorContent = await response.Content.ReadAsStringAsync();
-                        System.Diagnostics.Debug.WriteLine("LoadLikedSongsAsync: Error response content: " + errorContent);
+                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
+                            {
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
+                                return;
+                            }
+                            else
+                            {
+                                await LoadAccountDataAsync();
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
+                            return;
+                        }
                     }
 
                     if (response.IsSuccessStatusCode)
@@ -728,7 +837,6 @@ namespace MangoSpot
             {
                 try
                 {
-
                     string requestUri = string.Format("https://api.spotify.com/v1/playlists/{0}/tracks?offset={1}&limit={2}", playlist.Id, _offsetForTracksView, _limit);
                     var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
                     request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -740,9 +848,25 @@ namespace MangoSpot
 
                     if (!response.IsSuccessStatusCode)
                     {
-                        Debug.WriteLine("Failed to load tracks. Reason: " + response.ReasonPhrase);
-                        await ShowPopupAsync("Failed to load tracks: " + response.ReasonPhrase);
-                        return;
+                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            string refreshResult = await RefreshTokenAsync(httpClient, request);
+                            if (refreshResult != "Success")
+                            {
+                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
+                                return;
+                            }
+                            else
+                            {
+                                await LoadAccountDataAsync();
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
+                            return;
+                        }
                     }
 
                     string jsonResponse = await response.Content.ReadAsStringAsync();
@@ -750,12 +874,11 @@ namespace MangoSpot
 
                     JObject jsonResponseObj = JObject.Parse(jsonResponse);
                     JToken tracksData = jsonResponseObj["items"];
-
                     int totalTracks = jsonResponseObj["total"] != null ? (int)jsonResponseObj["total"] : 0;
 
                     if (tracksData == null || !tracksData.HasValues)
                     {
-                        Debug.WriteLine("No more tracks available to load or they're just less than 50 lol.");
+                        Debug.WriteLine("No more tracks available to load.");
                         return;
                     }
 
@@ -799,8 +922,11 @@ namespace MangoSpot
 
                     if (_offsetForTracksView + _limit >= totalTracks)
                     {
-                        Debug.WriteLine("All tracks loaded, no more to load or they're just less than 50 lol.");
-                        return;
+                        Debug.WriteLine("All tracks loaded, no more to load.");
+                    }
+                    else
+                    {
+                        _offsetForTracksView += _limit;
                     }
                 }
                 catch (Exception ex)
@@ -810,8 +936,6 @@ namespace MangoSpot
                 }
                 finally
                 {
-
-                    _offsetForTracksView += _limit;
                     _isLoading = false;
                 }
             }
@@ -1250,6 +1374,8 @@ namespace MangoSpot
                         TrackNameTextBlock.Text = trackName;
                         ArtistNameTextBlock.Text = artistName;
 
+                        BackgroundMediaPlayer.Current.SetUriSource(new Uri(audioUrl, UriKind.Absolute));
+
                         AudioPlayerOverlay.Visibility = Visibility.Visible;
                         AudioPlayer.Source = new Uri(audioUrl, UriKind.Absolute);
                         AudioPlayer.Visibility = Visibility.Visible;
@@ -1289,9 +1415,18 @@ namespace MangoSpot
         {
             var deferral = e.SuspendingOperation.GetDeferral();
 
-            BackgroundMediaPlayer.Current?.Pause();
+            BackgroundMediaPlayer.Current.Play();
 
             deferral.Complete();
+        }
+
+        private void OnResuming(object sender, object e)
+        {
+            if (BackgroundMediaPlayer.Current != null &&
+                BackgroundMediaPlayer.Current.CurrentState == MediaPlayerState.Paused)
+            {
+                BackgroundMediaPlayer.Current.Pause();
+            }
         }
 
 
