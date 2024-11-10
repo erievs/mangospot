@@ -32,6 +32,7 @@ namespace MangoSpot
         public MainPage()
         {
             this.InitializeComponent();
+
             _playlists = new ObservableCollection<Playlist>();
             _liked = new ObservableCollection<Track>();
             _currentPlaylist = new ObservableCollection<Track>();
@@ -43,7 +44,11 @@ namespace MangoSpot
             LikedSongsListView.ItemsSource = _liked;
             RecommendationsListView.ItemsSource = _recommendations;
             TracksListView.ItemsSource = _currentPlaylist;
+
+            InitializeDisplayRequest();
         }
+
+        public Windows.System.Display.DisplayRequest displayRequest = null;
 
         private int _offset = 0;
         private const int _limit = 50; 
@@ -92,6 +97,29 @@ namespace MangoSpot
             await aboutDialog.ShowAsync();
         }
 
+
+        private void InitializeDisplayRequest()
+        {
+            if (Settings.PreventSleep)
+            {
+
+                if (displayRequest != null)
+                {
+                    displayRequest.RequestRelease();
+                    displayRequest = null;
+                }
+            }
+            else
+            {
+
+                if (displayRequest == null)
+                {
+                    displayRequest = new Windows.System.Display.DisplayRequest();
+                    displayRequest.RequestActive();
+                }
+            }
+        }
+
         private async void Pivot_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var pivot = sender as Pivot;
@@ -105,6 +133,8 @@ namespace MangoSpot
             {
                 case "account":
                     await LoadAccountDataAsync();
+                    ShuffleToggleSwitch.IsOn = Settings.ShuffleTracks;  
+                    PreventSleepToggleSwitch.IsOn = Settings.PreventSleep;
                     BackgroundImage.Source = new BitmapImage(new Uri("ms-appx:///Assets/Bridge 2.jpg"));
                     break;
 
@@ -203,29 +233,6 @@ namespace MangoSpot
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine("Response JSON: " + jsonResponse);
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                        {
-                            string refreshResult = await RefreshTokenAsync(httpClient, request);
-                            if (refreshResult != "Success")
-                            {
-                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
-                                return;
-                            }
-                            else
-                            {
-                                await LoadAccountDataAsync();
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
-                            return;
-                        }
-                    }
-
                     if (response.IsSuccessStatusCode)
                     {
                         System.Diagnostics.Debug.WriteLine("Song liked successfully.");
@@ -289,29 +296,6 @@ namespace MangoSpot
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"SearchTracksAsync: Response Status Code: {(int)response.StatusCode} {response.StatusCode}");
                     System.Diagnostics.Debug.WriteLine("SearchTracksAsync: JSON Response: " + jsonResponse);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                        {
-                            string refreshResult = await RefreshTokenAsync(httpClient, request);
-                            if (refreshResult != "Success")
-                            {
-                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
-                                return;
-                            }
-                            else
-                            {
-                                await LoadAccountDataAsync();
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
-                            return;
-                        }
-                    }
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -402,29 +386,6 @@ namespace MangoSpot
                     System.Diagnostics.Debug.WriteLine($"LoadRecommendationsAsync: Response Status Code: {(int)response.StatusCode} {response.StatusCode}");
                     System.Diagnostics.Debug.WriteLine("LoadRecommendationsAsync: JSON Response: " + jsonResponse);
 
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                        {
-                            string refreshResult = await RefreshTokenAsync(httpClient, request);
-                            if (refreshResult != "Success")
-                            {
-                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
-                                return;
-                            }
-                            else
-                            {
-                                await LoadAccountDataAsync();
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
-                            return;
-                        }
-                    }
-
                     if (response.IsSuccessStatusCode)
                     {
                         var recommendationsData = JObject.Parse(jsonResponse)["tracks"];
@@ -503,29 +464,6 @@ namespace MangoSpot
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"LoadRecentlyPlayedTracksAsync: Response Status Code: {(int)response.StatusCode} {response.StatusCode}");
                     System.Diagnostics.Debug.WriteLine("LoadRecentlyPlayedTracksAsync: JSON Response: " + jsonResponse);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                        {
-                            string refreshResult = await RefreshTokenAsync(httpClient, request);
-                            if (refreshResult != "Success")
-                            {
-                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
-                                return;
-                            }
-                            else
-                            {
-                                await LoadAccountDataAsync();
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
-                            return;
-                        }
-                    }
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -631,29 +569,6 @@ namespace MangoSpot
                 {
                     var response = await httpClient.SendAsync(request);
                     System.Diagnostics.Debug.WriteLine("LoadLikedSongsAsync: Received response with status code " + response.StatusCode);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                        {
-                            string refreshResult = await RefreshTokenAsync(httpClient, request);
-                            if (refreshResult != "Success")
-                            {
-                                await ShowPopupAsync("Failed to refresh access token. Error: " + refreshResult);
-                                return;
-                            }
-                            else
-                            {
-                                await LoadAccountDataAsync();
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            await ShowPopupAsync($"Failed to load tracks. Status code: {response.StatusCode}");
-                            return;
-                        }
-                    }
 
                     if (response.IsSuccessStatusCode)
                     {
@@ -1499,11 +1414,26 @@ namespace MangoSpot
             ShuffleTracks();
         }
 
-        private void AudioPlayer_MediaEnded(object sender, RoutedEventArgs e)
+        private async void AudioPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
             isPlaying = false;
             PlayButton.Content = "Play";
             SeekSlider.Value = 0;
+
+            await Task.Delay(1000);
+
+            PlayNextTrack();
+        }
+
+        private void ShuffleToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+        {
+            Settings.ShuffleTracks = ShuffleToggleSwitch.IsOn;
+        }
+
+
+        private void PreventSleepToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+        {
+            Settings.PreventSleep = PreventSleepToggleSwitch.IsOn;
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)

@@ -14,9 +14,30 @@ namespace MangoSpot
 
         private static string accessToken;
 
+        private static bool shuffleTracks;
+
         private static string refreshToken;
 
+        private static bool preventSleep;
+
         public static string InnerTubeAPIKey = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
+
+        public static bool PreventSleep
+        {
+            get
+            {
+                if (localSettings.Values.ContainsKey("PreventSleep"))
+                {
+                    return (bool)localSettings.Values["PreventSleep"];
+                }
+                return preventSleep;
+            }
+            set
+            {
+                preventSleep = value;
+                localSettings.Values["PreventSleep"] = value;
+            }
+        }
 
         public static string AccessToken
         {
@@ -32,6 +53,23 @@ namespace MangoSpot
             {
                 accessToken = value;
                 localSettings.Values["AccessToken"] = value;
+            }
+        }
+
+        public static bool ShuffleTracks
+        {
+            get
+            {
+                if (localSettings.Values.ContainsKey("ShuffleTracks"))
+                {
+                    return (bool)localSettings.Values["ShuffleTracks"];
+                }
+                return shuffleTracks;
+            }
+            set
+            {
+                shuffleTracks = value;
+                localSettings.Values["ShuffleTracks"] = value;
             }
         }
 
